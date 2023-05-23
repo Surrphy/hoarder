@@ -8,6 +8,9 @@ edition = "2021"
 anyhow = "1.0.71"
 axum = "0.6.18"
 hyper = { version = "0.14.26", features = ["full"] }
+pem = "2.0.1"
+pgp = "0.10.1"
+rand = "0.8.5"
 serde = { version = "1.0.163", features = ["derive"] }
 sqlx = { version = "0.6.3", features = ["runtime-tokio-native-tls", "postgres"] }
 tokio = { version = "1.28.1", features = ["full"] }

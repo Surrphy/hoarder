@@ -1,10 +1,5 @@
-use sqlx::postgres::PgPool;
-
 pub mod routes;
-
-pub struct AppState {
-    pub pool: PgPool
-}
+pub mod app;
 
 #[cfg(test)]
 mod tests {

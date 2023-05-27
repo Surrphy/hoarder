@@ -32,7 +32,9 @@ async fn main() {
         .expect("Coudn't run migrations on database");
 
     // build our application with a single route let app = Router::new().route("/", get(json_response));
-    let app = Router::new().route("/login", get(routes::users::login)).with_state(Arc::clone(&shared_state));
+    let app = Router::new()
+        .route("/login", get(routes::users::login)).with_state(Arc::clone(&shared_state))
+        .route("/secret", get(routes::users::get_secret)).with_state(Arc::clone(&shared_state));
 
     // run it with hyper on addr given in envvar
     axum::Server::bind(&url.parse().expect(&format!("Couldn't bind to address: {}", url)))

@@ -19,6 +19,7 @@ impl AppState {
     }
 }
 
+#[derive(Clone)]
 pub struct User {
     user_id: i32,
     user_fingerprint: String,

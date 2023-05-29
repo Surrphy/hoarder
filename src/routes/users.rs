@@ -10,6 +10,8 @@ use tokio::sync::Mutex;
 
 use std::sync::Arc;
 
+use sqlx::Row;
+
 use crate::utils::{AppState, self};
 
 #[derive(Deserialize)]
@@ -32,6 +34,33 @@ pub async fn login(State(state): State<Arc<Mutex<AppState>>>, Json(params): Json
     state.add_connected_user(user, api_token);
 
     Ok(secret)
+}
+
+#[derive(Deserialize)]
+pub struct RegisterQuery{
+    user_fingerprint: String,
+    user_pub_key: String,
+}
+
+pub async fn register(State(state): State<Arc<Mutex<AppState>>>, Json(params): Json<RegisterQuery>) -> Result<String, StatusCode> {
+    let state = state.lock().await;
+
+    if let Ok(_) = utils::get_user(&state.pool, &params.user_fingerprint).await {
+        return Err(StatusCode::BAD_REQUEST);
+    }
+
+    let Ok(_) = sqlx::query!("
+INSERT INTO 
+users (user_fingerprint, user_public_key, is_admin)
+VALUES ($1, $2, false)",
+        params.user_fingerprint,
+        params.user_pub_key)
+        .fetch_optional(&state.pool)
+        .await else {
+        return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    };
+
+    Ok(String::from("OK"))
 }
 
 #[derive(Deserialize)]

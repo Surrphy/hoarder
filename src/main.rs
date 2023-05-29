@@ -1,5 +1,5 @@
 use axum::{
-    routing::get,
+    routing::{get, post},
     Router,
 };
 
@@ -28,7 +28,8 @@ pub async fn axum(
     // build our application with a single route let app = Router::new().route("/", get(json_response));
     let app = Router::new()
         .route("/login", get(routes::users::login)).with_state(Arc::clone(&shared_state))
-        .route("/secret", get(routes::users::get_secret)).with_state(Arc::clone(&shared_state));
+        .route("/secret", get(routes::users::get_secret)).with_state(Arc::clone(&shared_state))
+        .route("/register", post(routes::users::register)).with_state(Arc::clone(&shared_state));
 
     Ok(app.into())
 }

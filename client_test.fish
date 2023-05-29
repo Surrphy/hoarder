@@ -2,7 +2,7 @@
 
 set output_file /tmp/hoarder_dev_test
 
-set url 'http://localhost:3000'
+set url 'http://localhost:8000'
 
 curl -X GET -d '{"user_fingerprint": "5019 B899 74E8 F56C 2B5B  FA4F EBF8 5543 5E77 07A1"}' -H 'Content-Type: application/json' $url/login --silent > $output_file
 

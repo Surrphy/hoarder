@@ -20,10 +20,7 @@ pub struct LoginQuery {
 #[axum_macros::debug_handler]
 pub async fn login(State(state): State<Arc<Mutex<AppState>>>, Json(params): Json<LoginQuery>) -> Result<String, StatusCode> {
     let mut state = state.lock().await;
-    let user = match utils::get_user(&state.pool, &params.user_fingerprint).await {
-        Ok(val) => val,
-        Err(err) => return Err(err)
-    };
+    let user = utils::get_user(&state.pool, &params.user_fingerprint).await?;
 
     let api_token: String = rand::thread_rng().sample_iter(&Alphanumeric)
         .take(30)
@@ -45,8 +42,8 @@ pub struct Request {
 
 #[axum_macros::debug_handler]
 pub async fn get_secret(State(state): State<Arc<Mutex<AppState>>>, Json(params): Json<Request>) -> Result<String, StatusCode> {
-    let (user, api_token) = match state.lock().await.connected_users.get(&params.user_fingerprint) {
-        Some(val) => (val.0.clone(), val.1.to_string()),
+    let (pub_key, api_token) = match state.lock().await.connected_users.get(&params.user_fingerprint) {
+        Some(val) => (val.0.get_pub_key().clone(), val.1.to_string()),
         None => return Err(StatusCode::UNAUTHORIZED)
     };
 
@@ -54,5 +51,5 @@ pub async fn get_secret(State(state): State<Arc<Mutex<AppState>>>, Json(params):
         return Err(StatusCode::UNAUTHORIZED);
     }
     
-    Ok(utils::encrypt("Sekretna wiadomość Huberta Moszki", user.get_pub_key()).await?) 
+    Ok(utils::encrypt("Sekretna wiadomość Huberta Moszki", &pub_key).await?) 
 }

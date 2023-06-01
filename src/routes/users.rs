@@ -49,13 +49,13 @@ pub async fn register(State(state): State<Arc<Mutex<AppState>>>, Json(params): J
         return Err(StatusCode::BAD_REQUEST);
     }
 
-    let Ok(_) = sqlx::query!("
+    let Ok(_) = sqlx::query("
 INSERT INTO 
 users (user_fingerprint, user_public_key, is_admin)
-VALUES ($1, $2, false)",
-        params.user_fingerprint,
-        params.user_pub_key)
-        .fetch_optional(&state.pool)
+VALUES ($1, $2, false)")
+        .bind(params.user_fingerprint)
+        .bind(params.user_pub_key)
+        .execute(&state.pool)
         .await else {
         return Err(StatusCode::INTERNAL_SERVER_ERROR);
     };

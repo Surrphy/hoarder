@@ -7,6 +7,7 @@ use sqlx::Error;
 use pgp::{Message, crypto::sym::SymmetricKeyAlgorithm};
 
 use axum::http::StatusCode;
+use sqlx::Row;
 
 pub struct AppState {
     pub pool: PgPool,
@@ -34,7 +35,8 @@ impl User {
 }
 
 pub async fn get_user(pool: &PgPool, fingerprint: &str) -> Result<User, StatusCode> {
-    let user = match sqlx::query!("SELECT user_id, user_fingerprint, user_public_key, is_admin FROM users WHERE user_fingerprint = $1", fingerprint)
+    let user = match sqlx::query("SELECT * FROM users WHERE user_fingerprint = $1")
+        .bind(fingerprint)
         .fetch_one(pool)
         .await {
         Ok(val) => val,
@@ -42,12 +44,12 @@ pub async fn get_user(pool: &PgPool, fingerprint: &str) -> Result<User, StatusCo
         Err(_) => return Err(StatusCode::INTERNAL_SERVER_ERROR)
     };
 
-    let public_key = match SignedPublicKey::from_string(&user.user_public_key) {
+    let public_key = match SignedPublicKey::from_string(user.get("user_public_key")) {
         Ok(val) => val.0,
         Err(_) => return Err(StatusCode::INTERNAL_SERVER_ERROR)
     };
 
-    Ok(User { user_id: user.user_id, user_fingerprint: user.user_fingerprint, user_public_key: public_key, is_admin: user.is_admin })
+    Ok(User { user_id: user.get("user_id"), user_fingerprint: user.get("user_fingerprint"), user_public_key: public_key, is_admin: user.get("is_admin") })
 }
 
 pub async fn encrypt(s: &str, pub_key: &SignedPublicKey) -> Result<String, StatusCode> {
